@@ -168,10 +168,14 @@ with container:
         def convert_df(df):
             return df.to_csv(index=False).encode('utf-8')
         csv = convert_df(df_stats)
-        st.download_button("Download Raw Signal Stats", data=csv, file_name="raw_signal_stats.csv", mime='text/csv')
 
         noise = Signal - denoised_signal
         stats = calculate_statistical_data(denoised_signal, noise)
         df_stats_denoised = pd.DataFrame(stats.items(), columns=["Parameter", "Value"])
         csv_denoised = convert_df(df_stats_denoised)
-        st.download_button("Download Denoised Signal Stats", data=csv_denoised, file_name="denoised_signal_stats.csv", mime='text/csv')
+
+        col1, col2 = st.columns(2)
+        with col1:
+            st.download_button("Download Raw Signal Stats", data=csv, file_name="raw_signal_stats.csv", mime='text/csv')
+        with col2:
+            st.download_button("Download Denoised Signal Stats", data=csv_denoised, file_name="denoised_signal_stats.csv", mime='text/csv')
