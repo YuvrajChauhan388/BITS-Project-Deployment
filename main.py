@@ -42,6 +42,15 @@ container = st.container()
 with container:
     st.write(f"<h1 style='text-align: center;'>Stability Prediction</h1>", unsafe_allow_html=True)
 
+# Add CSS to change background color
+st.markdown("""
+<style>
+body {
+    background-color: #ADD8E6; /* Light Sky Blue */
+}
+</style>
+""", unsafe_allow_html=True)
+
 uploaded_file = st.file_uploader("Choose a file")
 if uploaded_file is not None:
     df = pd.read_csv(uploaded_file, delimiter='\t', header=None)
