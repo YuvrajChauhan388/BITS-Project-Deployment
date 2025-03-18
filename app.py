@@ -348,4 +348,4 @@ def download_raw_data(n_clicks):
         return dcc.send_data_frame(df.to_csv, "denoised_signal_statistical_parameters.csv")
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(debug=True, port=8051)
