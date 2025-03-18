@@ -42,7 +42,7 @@ st.markdown(
     """
     <style>
     .stApp {
-        background-color: #87CEEB; /* Sky Blue */
+        background-color: rgba(135, 206, 235, 0.5); /* Sky Blue with 50% transparency */
     }
     </style>
     """,
