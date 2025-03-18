@@ -38,7 +38,9 @@ def calculate_statistical_data(reconstructed_signal, noise):
     return params
 
 # Streamlit app
-st.title("Stability Prediction")
+container = st.container()
+with container:
+    st.write(f"<h1 style='text-align: center;'>Stability Prediction</h1>", unsafe_allow_html=True)
 
 uploaded_file = st.file_uploader("Choose a file")
 if uploaded_file is not None:
@@ -118,6 +120,25 @@ if uploaded_file is not None:
         f, t, Sxx = spectrogram(denoised_signal, 20000)
         fig = go.Figure(data=go.Heatmap(z=10 * np.log10(Sxx), x=t, y=f, colorscale='Plasma'))
     st.plotly_chart(fig, use_container_width=True)
+
+    # Display source and wavelet plots in a single row
+    col1, col2 = st.columns(2)
+    with col1:
+        fig_source = go.Figure()
+        if source_signal == 'Raw Signal':
+            fig_source.add_trace(go.Scatter(x=time, y=Signal, mode='lines', name='Raw Signal'))
+        elif source_signal == 'Denoised Signal':
+            fig_source.add_trace(go.Scatter(x=time, y=denoised_signal, mode='lines', name='Denoised Signal'))
+        st.plotly_chart(fig_source, use_container_width=True)
+    with col2:
+        st.plotly_chart(fig, use_container_width=True)
+
+    # Display FFT and spectrum plots in a single row
+    col3, col4 = st.columns(2)
+    with col3:
+        st.plotly_chart(fig, use_container_width=True)
+    with col4:
+        st.plotly_chart(fig, use_container_width=True)
 
     # Download statistical parameters
     st.subheader("Download Statistical Parameters")
