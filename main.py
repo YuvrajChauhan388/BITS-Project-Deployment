@@ -71,6 +71,11 @@ with container:
             denoised_coeffs = [pywt.threshold(c, threshold(c), mode='soft') if i > 0 else c for i, c in enumerate(coeffs)]
             denoised_signal = pywt.waverec(denoised_coeffs, 'bior2.4')[:len(Signal)]
             fig_source.add_trace(go.Scatter(x=time, y=denoised_signal, mode='lines', name='Denoised Signal'))
+        fig_source.update_layout(
+            title='Source Signal Plot',
+            xaxis_title='Time (s)',
+            yaxis_title='Amplitude'
+        )
         st.plotly_chart(fig_source, use_container_width=True, key='source_plot')
 
         # Wavelet denoising
@@ -95,6 +100,18 @@ with container:
             detail_coeffs = coeffs[1:]
             correlation_detail = [np.corrcoef(Signal[:len(coeff)], coeff)[0, 1] for coeff in detail_coeffs]
             fig_wavelet.add_trace(go.Bar(x=[f'Detail {i+1}' for i in range(len(detail_coeffs))], y=correlation_detail, name='Pearson CC'))
+        if wavelet_option in ['Approximate Coefficients', 'Detailed Coefficients']:
+            fig_wavelet.update_layout(
+                title='Wavelet Coefficients',
+                xaxis_title='Coefficient Index',
+                yaxis_title='Coefficient Value'
+            )
+        elif wavelet_option in ['Pearson CC (Approximate)', 'Pearson CC (Detailed)']:
+            fig_wavelet.update_layout(
+                title='Pearson Correlation Coefficient',
+                xaxis_title='Coefficient Type',
+                yaxis_title='Correlation Coefficient'
+            )
         st.plotly_chart(fig_wavelet, use_container_width=True, key='wavelet_plot')
 
         # FFT calculations
@@ -119,6 +136,11 @@ with container:
                 fft_detail_coeffs = np.abs(np.fft.fft(coeff))[:len(coeff) // 2]
                 fft_freqs_detail = np.linspace(0, 20000 / 2, len(fft_detail_coeffs))
                 fig_fft.add_trace(go.Scatter(x=fft_freqs_detail, y=fft_detail_coeffs, mode='lines', name=f'FFT of Detail Coefficients {i+1}'))
+        fig_fft.update_layout(
+            title='FFT of Signals',
+            xaxis_title='Frequency (Hz)',
+            yaxis_title='Magnitude'
+        )
         st.plotly_chart(fig_fft, use_container_width=True, key='fft_plot')
 
         # Time-frequency spectrum plot
@@ -130,6 +152,11 @@ with container:
         elif spectrum_option == 'Denoised Signal':
             f, t, Sxx = spectrogram(denoised_signal, 20000)
             fig_spectrum = go.Figure(data=go.Heatmap(z=10 * np.log10(Sxx), x=t, y=f, colorscale='Plasma'))
+        fig_spectrum.update_layout(
+            title='Time-Frequency Spectrum',
+            xaxis_title='Time (s)',
+            yaxis_title='Frequency (Hz)'
+        )
         st.plotly_chart(fig_spectrum, use_container_width=True, key='spectrum_plot')
 
         # Download statistical parameters
