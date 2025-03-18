@@ -348,4 +348,8 @@ def download_raw_data(n_clicks):
         return dcc.send_data_frame(df.to_csv, "denoised_signal_statistical_parameters.csv")
 
 if __name__ == '__main__':
-    app.run_server(debug=True, port=8051)
+    import sys
+    if len(sys.argv) > 1 and sys.argv[1] == 'streamlit':
+        app.run_server(debug=False, host='0.0.0.0', port=8051)
+    else:
+        app.run_server(debug=True, port=8051)
