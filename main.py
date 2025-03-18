@@ -174,8 +174,10 @@ with container:
         df_stats_denoised = pd.DataFrame(stats.items(), columns=["Parameter", "Value"])
         csv_denoised = convert_df(df_stats_denoised)
 
-        col1, col2 = st.columns(2)
-        with col1:
-            st.download_button("Download Raw Signal Stats", data=csv, file_name="raw_signal_stats.csv", mime='text/csv')
+        col1, col2, col3 = st.columns([1, 2, 1])
         with col2:
-            st.download_button("Download Denoised Signal Stats", data=csv_denoised, file_name="denoised_signal_stats.csv", mime='text/csv')
+            col2_1, col2_2 = st.columns(2)
+            with col2_1:
+                st.download_button("Download Raw Signal Stats", data=csv, file_name="raw_signal_stats.csv", mime='text/csv')
+            with col2_2:
+                st.download_button("Download Denoised Signal Stats", data=csv_denoised, file_name="denoised_signal_stats.csv", mime='text/csv')
