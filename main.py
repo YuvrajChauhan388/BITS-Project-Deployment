@@ -60,8 +60,10 @@ if uploaded_file is not None:
         denoised_coeffs = [pywt.threshold(c, threshold(c), mode='soft') if i > 0 else c for i, c in enumerate(coeffs)]
         denoised_signal = pywt.waverec(denoised_coeffs, 'bior2.4')[:len(Signal)]
         fig_source.add_trace(go.Scatter(x=time, y=denoised_signal, mode='lines', name='Denoised Signal'))
+    st.plotly_chart(fig_source, use_container_width=True, key='source_plot')
 
-    # Wavelet denoising plot
+    # Wavelet denoising
+    st.subheader("Wavelet Denoising")
     wavelet_option = st.selectbox("Select Wavelet Denoising Option", ['Approximate Coefficients', 'Detailed Coefficients', 'Pearson CC (Approximate)', 'Pearson CC (Detailed)'])
     n_levels = st.slider("Define number of levels (1-20):", min_value=1, max_value=20, value=7)
     coeffs = pywt.wavedec(Signal, 'bior2.4', level=n_levels)
@@ -82,15 +84,10 @@ if uploaded_file is not None:
         detail_coeffs = coeffs[1:]
         correlation_detail = [np.corrcoef(Signal[:len(coeff)], coeff)[0, 1] for coeff in detail_coeffs]
         fig_wavelet.add_trace(go.Bar(x=[f'Detail {i+1}' for i in range(len(detail_coeffs))], y=correlation_detail, name='Pearson CC'))
-
-    # Display source and wavelet plots in a single row
-    col1, col2 = st.columns(2)
-    with col1:
-        st.plotly_chart(fig_source, use_container_width=True, key='source_plot')
-    with col2:
-        st.plotly_chart(fig_wavelet, use_container_width=True, key='wavelet_plot')
+    st.plotly_chart(fig_wavelet, use_container_width=True, key='wavelet_plot')
 
     # FFT calculations
+    st.subheader("FFT of Signals")
     fft_option = st.selectbox("Select FFT Option", ['FFT of Raw Signal', 'FFT of Denoised Signal', 'FFT of Approx Coefficients', 'FFT of Detail Coefficients'])
     fft_raw = np.abs(np.fft.fft(Signal))[:len(Signal) // 2]
     fft_freqs = np.linspace(0, 20000 / 2, len(fft_raw))
@@ -111,8 +108,10 @@ if uploaded_file is not None:
             fft_detail_coeffs = np.abs(np.fft.fft(coeff))[:len(coeff) // 2]
             fft_freqs_detail = np.linspace(0, 20000 / 2, len(fft_detail_coeffs))
             fig_fft.add_trace(go.Scatter(x=fft_freqs_detail, y=fft_detail_coeffs, mode='lines', name=f'FFT of Detail Coefficients {i+1}'))
+    st.plotly_chart(fig_fft, use_container_width=True, key='fft_plot')
 
     # Time-frequency spectrum plot
+    st.subheader("Time-Frequency Spectrum")
     spectrum_option = st.selectbox("Select Time-Frequency Spectrum Option", ['Raw Signal', 'Denoised Signal'])
     if spectrum_option == 'Raw Signal':
         f, t, Sxx = spectrogram(Signal, 20000)
@@ -120,13 +119,21 @@ if uploaded_file is not None:
     elif spectrum_option == 'Denoised Signal':
         f, t, Sxx = spectrogram(denoised_signal, 20000)
         fig_spectrum = go.Figure(data=go.Heatmap(z=10 * np.log10(Sxx), x=t, y=f, colorscale='Plasma'))
+    st.plotly_chart(fig_spectrum, use_container_width=True, key='spectrum_plot')
+
+    # Display source and wavelet plots in a single row
+    col1, col2 = st.columns(2)
+    with col1:
+        st.plotly_chart(fig_source, use_container_width=True, key='source_plot_2')
+    with col2:
+        st.plotly_chart(fig_wavelet, use_container_width=True, key='wavelet_plot_2')
 
     # Display FFT and spectrum plots in a single row
     col3, col4 = st.columns(2)
     with col3:
-        st.plotly_chart(fig_fft, use_container_width=True, key='fft_plot')
+        st.plotly_chart(fig_fft, use_container_width=True, key='fft_plot_2')
     with col4:
-        st.plotly_chart(fig_spectrum, use_container_width=True, key='spectrum_plot')
+        st.plotly_chart(fig_spectrum, use_container_width=True, key='spectrum_plot_2')
 
     # Download statistical parameters
     st.subheader("Download Statistical Parameters")
