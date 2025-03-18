@@ -86,6 +86,13 @@ if uploaded_file is not None:
         fig_wavelet.add_trace(go.Bar(x=[f'Detail {i+1}' for i in range(len(detail_coeffs))], y=correlation_detail, name='Pearson CC'))
     st.plotly_chart(fig_wavelet, use_container_width=True, key='wavelet_plot')
 
+    # Display source and wavelet plots in a single row
+    col1, col2 = st.columns(2)
+    with col1:
+        st.plotly_chart(fig_source, use_container_width=True, key='source_plot_2')
+    with col2:
+        st.plotly_chart(fig_wavelet, use_container_width=True, key='wavelet_plot_2')
+
     # FFT calculations
     st.subheader("FFT of Signals")
     fft_option = st.selectbox("Select FFT Option", ['FFT of Raw Signal', 'FFT of Denoised Signal', 'FFT of Approx Coefficients', 'FFT of Detail Coefficients'])
@@ -120,13 +127,6 @@ if uploaded_file is not None:
         f, t, Sxx = spectrogram(denoised_signal, 20000)
         fig_spectrum = go.Figure(data=go.Heatmap(z=10 * np.log10(Sxx), x=t, y=f, colorscale='Plasma'))
     st.plotly_chart(fig_spectrum, use_container_width=True, key='spectrum_plot')
-
-    # Display source and wavelet plots in a single row
-    col1, col2 = st.columns(2)
-    with col1:
-        st.plotly_chart(fig_source, use_container_width=True, key='source_plot_2')
-    with col2:
-        st.plotly_chart(fig_wavelet, use_container_width=True, key='wavelet_plot_2')
 
     # Display FFT and spectrum plots in a single row
     col3, col4 = st.columns(2)
