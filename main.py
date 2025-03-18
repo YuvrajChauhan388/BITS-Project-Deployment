@@ -41,8 +41,8 @@ def calculate_statistical_data(reconstructed_signal, noise):
 st.markdown(
     """
     <style>
-    body {
-        background-color: #ADD8E6; /* Light Sky Blue */
+    .stApp {
+        background-color: #87CEEB; /* Sky Blue */
     }
     </style>
     """,
