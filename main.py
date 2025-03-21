@@ -172,9 +172,9 @@ with container:
         st.plotly_chart(fig_spectrum, use_container_width=True, key='spectrum_plot')
 
         # Download statistical parameters
-        col1, col2, col3 = st.columns([1, 4, 1])
-        with col2:
-            st.markdown(f"<h3 style='text-align: center;'>Download Statistical Parameters</h3>", unsafe_allow_html=True)
+        st.markdown(f"<h3 style='text-align: center;'>Download Statistical Parameters</h3>", unsafe_allow_html=True)
+        
+        col1, col2, col3 = st.columns([1, 1, 1])
         with col1:
             noise = np.zeros_like(Signal)
             stats = calculate_statistical_data(Signal, noise)
@@ -184,6 +184,9 @@ with container:
                 return df.to_csv(index=False).encode('utf-8')
             csv = convert_df(df_stats)
             st.download_button("Download Raw Signal Stats", data=csv, file_name="raw_signal_stats.csv", mime='text/csv')
+        with col2:
+            # Empty column for spacing
+            pass
         with col3:
             noise = Signal - denoised_signal
             stats = calculate_statistical_data(denoised_signal, noise)
