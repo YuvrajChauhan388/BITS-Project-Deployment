@@ -172,7 +172,7 @@ with container:
         st.plotly_chart(fig_spectrum, use_container_width=True, key='spectrum_plot')
 
         # Download statistical parameters
-        st.subheader(f"<h3 style='text-align: center;'>Download Statistical Parameters</h3>", unsafe_allow_html=True)
+        st.markdown(f"<h3 style='text-align: center;'>Download Statistical Parameters</h3>", unsafe_allow_html=True)
         noise = np.zeros_like(Signal)
         stats = calculate_statistical_data(Signal, noise)
         df_stats = pd.DataFrame(stats.items(), columns=["Parameter", "Value"])
