@@ -64,17 +64,18 @@ with container:
         source_signal = st.selectbox("Select Source Signal", ['Raw Signal', 'Denoised Signal'])
         fig_source = go.Figure()
         if source_signal == 'Raw Signal':
-            fig_source.add_trace(go.Scatter(x=time, y=Signal, mode='lines', name='Raw Signal'))
+            fig_source.add_trace(go.Scatter(x=time, y=Signal, mode='lines', name='Raw Signal', line=dict(color='black')))
         elif source_signal == 'Denoised Signal':
             coeffs = pywt.wavedec(Signal, 'bior2.4', level=7)
             threshold = lambda x: np.sqrt(2 * np.log(len(x))) * np.median(np.abs(x) / 0.6745)
             denoised_coeffs = [pywt.threshold(c, threshold(c), mode='soft') if i > 0 else c for i, c in enumerate(coeffs)]
             denoised_signal = pywt.waverec(denoised_coeffs, 'bior2.4')[:len(Signal)]
-            fig_source.add_trace(go.Scatter(x=time, y=denoised_signal, mode='lines', name='Denoised Signal'))
+            fig_source.add_trace(go.Scatter(x=time, y=denoised_signal, mode='lines', name='Denoised Signal', line=dict(color='black')))
         fig_source.update_layout(
-            title='Source Signal Plot',
-            xaxis_title='Time (s)',
-            yaxis_title='Amplitude'
+            font=dict(size=14, color='black'),
+            xaxis_title="Time",
+            yaxis_title="Amplitude",
+            legend=dict(font=dict(size=14))
         )
         st.plotly_chart(fig_source, use_container_width=True, key='source_plot')
 
@@ -89,29 +90,23 @@ with container:
 
         fig_wavelet = go.Figure()
         if wavelet_option == 'Approximate Coefficients':
-            fig_wavelet.add_trace(go.Scatter(x=np.arange(len(coeffs[0])), y=coeffs[0], mode='lines', name='Approximation Coefficients'))
+            fig_wavelet.add_trace(go.Scatter(x=np.arange(len(coeffs[0])), y=coeffs[0], mode='lines', name='Approximation Coefficients', line=dict(color='black')))
         elif wavelet_option == 'Detailed Coefficients':
             for i, coeff in enumerate(coeffs[1:]):
-                fig_wavelet.add_trace(go.Scatter(x=np.arange(len(coeff)), y=coeff, mode='lines', name=f'Detail Coefficients {i+1}'))
+                fig_wavelet.add_trace(go.Scatter(x=np.arange(len(coeff)), y=coeff, mode='lines', name=f'Detail Coefficients {i+1}', line=dict(color='black')))
         elif wavelet_option == 'Pearson CC (Approximate)':
             correlation_approx = np.corrcoef(Signal[:len(coeffs[0])], coeffs[0])[0, 1]
-            fig_wavelet.add_trace(go.Bar(x=['Approx Coefficients'], y=[correlation_approx], name='Pearson CC'))
+            fig_wavelet.add_trace(go.Bar(x=['Approx Coefficients'], y=[correlation_approx], name='Pearson CC', marker=dict(color='black')))
         elif wavelet_option == 'Pearson CC (Detailed)':
             detail_coeffs = coeffs[1:]
             correlation_detail = [np.corrcoef(Signal[:len(coeff)], coeff)[0, 1] for coeff in detail_coeffs]
-            fig_wavelet.add_trace(go.Bar(x=[f'Detail {i+1}' for i in range(len(detail_coeffs))], y=correlation_detail, name='Pearson CC'))
-        if wavelet_option in ['Approximate Coefficients', 'Detailed Coefficients']:
-            fig_wavelet.update_layout(
-                title='Wavelet Coefficients',
-                xaxis_title='Coefficient Index',
-                yaxis_title='Coefficient Value'
-            )
-        elif wavelet_option in ['Pearson CC (Approximate)', 'Pearson CC (Detailed)']:
-            fig_wavelet.update_layout(
-                title='Pearson Correlation Coefficient',
-                xaxis_title='Coefficient Type',
-                yaxis_title='Correlation Coefficient'
-            )
+            fig_wavelet.add_trace(go.Bar(x=[f'Detail {i+1}' for i in range(len(detail_coeffs))], y=correlation_detail, name='Pearson CC', marker=dict(color='black')))
+        fig_wavelet.update_layout(
+            font=dict(size=14, color='black'),
+            xaxis_title="Index",
+            yaxis_title="Coefficient Value",
+            legend=dict(font=dict(size=14))
+        )
         st.plotly_chart(fig_wavelet, use_container_width=True, key='wavelet_plot')
 
         # FFT calculations
@@ -123,23 +118,24 @@ with container:
 
         fig_fft = go.Figure()
         if fft_option == 'FFT of Raw Signal':
-            fig_fft.add_trace(go.Scatter(x=fft_freqs, y=fft_raw, mode='lines', name='FFT of Raw Signal'))
+            fig_fft.add_trace(go.Scatter(x=fft_freqs, y=fft_raw, mode='lines', name='FFT of Raw Signal', line=dict(color='black')))
         elif fft_option == 'FFT of Denoised Signal':
-            fig_fft.add_trace(go.Scatter(x=fft_freqs, y=fft_denoised, mode='lines', name='FFT of Denoised Signal'))
+            fig_fft.add_trace(go.Scatter(x=fft_freqs, y=fft_denoised, mode='lines', name='FFT of Denoised Signal', line=dict(color='black')))
         elif fft_option == 'FFT of Approx Coefficients':
             fft_approx_coeffs = np.abs(np.fft.fft(coeffs[0]))[:len(coeffs[0]) // 2]
             fft_freqs_approx = np.linspace(0, 20000 / 2, len(fft_approx_coeffs))
-            fig_fft.add_trace(go.Scatter(x=fft_freqs_approx, y=fft_approx_coeffs, mode='lines', name='FFT of Approx Coefficients'))
+            fig_fft.add_trace(go.Scatter(x=fft_freqs_approx, y=fft_approx_coeffs, mode='lines', name='FFT of Approx Coefficients', line=dict(color='black')))
         elif fft_option == 'FFT of Detail Coefficients':
             detail_coeffs = coeffs[1:]
             for i, coeff in enumerate(detail_coeffs):
                 fft_detail_coeffs = np.abs(np.fft.fft(coeff))[:len(coeff) // 2]
                 fft_freqs_detail = np.linspace(0, 20000 / 2, len(fft_detail_coeffs))
-                fig_fft.add_trace(go.Scatter(x=fft_freqs_detail, y=fft_detail_coeffs, mode='lines', name=f'FFT of Detail Coefficients {i+1}'))
+                fig_fft.add_trace(go.Scatter(x=fft_freqs_detail, y=fft_detail_coeffs, mode='lines', name=f'FFT of Detail Coefficients {i+1}', line=dict(color='black')))
         fig_fft.update_layout(
-            title='FFT of Signals',
-            xaxis_title='Frequency (Hz)',
-            yaxis_title='Magnitude'
+            font=dict(size=14, color='black'),
+            xaxis_title="Frequency",
+            yaxis_title="Amplitude",
+            legend=dict(font=dict(size=14))
         )
         st.plotly_chart(fig_fft, use_container_width=True, key='fft_plot')
 
@@ -153,14 +149,14 @@ with container:
             f, t, Sxx = spectrogram(denoised_signal, 20000)
             fig_spectrum = go.Figure(data=go.Heatmap(z=10 * np.log10(Sxx), x=t, y=f, colorscale='Plasma'))
         fig_spectrum.update_layout(
-            title='Time-Frequency Spectrum',
-            xaxis_title='Time (s)',
-            yaxis_title='Frequency (Hz)'
+            font=dict(size=14, color='black'),
+            xaxis_title="Time",
+            yaxis_title="Frequency"
         )
         st.plotly_chart(fig_spectrum, use_container_width=True, key='spectrum_plot')
 
         # Download statistical parameters
-        st.write(f"<h2 style='text-align: center;'>Download Statistical Parameters</h2>", unsafe_allow_html=True)
+        st.subheader("Download Statistical Parameters")
         noise = np.zeros_like(Signal)
         stats = calculate_statistical_data(Signal, noise)
         df_stats = pd.DataFrame(stats.items(), columns=["Parameter", "Value"])
@@ -168,16 +164,10 @@ with container:
         def convert_df(df):
             return df.to_csv(index=False).encode('utf-8')
         csv = convert_df(df_stats)
+        st.download_button("Download Raw Signal Stats", data=csv, file_name="raw_signal_stats.csv", mime='text/csv')
 
         noise = Signal - denoised_signal
         stats = calculate_statistical_data(denoised_signal, noise)
         df_stats_denoised = pd.DataFrame(stats.items(), columns=["Parameter", "Value"])
         csv_denoised = convert_df(df_stats_denoised)
-
-        col1, col2, col3 = st.columns([1, 2, 1])
-        with col2:
-            col2_1, col2_2 = st.columns(2)
-            with col2_1:
-                st.download_button("Download Raw Signal Stats", data=csv, file_name="raw_signal_stats.csv", mime='text/csv')
-            with col2_2:
-                st.download_button("Download Denoised Signal Stats", data=csv_denoised, file_name="denoised_signal_stats.csv", mime='text/csv')
+        st.download_button("Download Denoised Signal Stats", data=csv_denoised, file_name="denoised_signal_stats.csv", mime='text/csv')
