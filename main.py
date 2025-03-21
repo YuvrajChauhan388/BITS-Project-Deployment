@@ -49,6 +49,17 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+# Custom CSS for button styling
+st.markdown("""
+<style>
+button {
+    height: 40px; /* Adjust the height as needed */
+    width: 250px; /* Adjust the width as needed */
+    font-size: 16px; /* Adjust font size */
+}
+</style>
+""", unsafe_allow_html=True)
+
 container = st.container()
 with container:
     st.write(f"<h1 style='text-align: center;'>Wavelet Based Feature Extraction</h1>", unsafe_allow_html=True)
