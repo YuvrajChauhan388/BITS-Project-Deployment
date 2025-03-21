@@ -172,24 +172,18 @@ with container:
         st.plotly_chart(fig_spectrum, use_container_width=True, key='spectrum_plot')
 
         # Download statistical parameters
-        st.markdown(f"<h3 style='text-align: center;'>Download Statistical Parameters</h3>", unsafe_allow_html=True)
-        
-        col1, col2, col3 = st.columns([1, 1, 1])
-        with col1:
-            noise = np.zeros_like(Signal)
-            stats = calculate_statistical_data(Signal, noise)
-            df_stats = pd.DataFrame(stats.items(), columns=["Parameter", "Value"])
-            @st.cache_data
-            def convert_df(df):
-                return df.to_csv(index=False).encode('utf-8')
-            csv = convert_df(df_stats)
-            st.download_button("Download Raw Signal Stats", data=csv, file_name="raw_signal_stats.csv", mime='text/csv')
-        with col2:
-            # Empty column for spacing
-            pass
-        with col3:
-            noise = Signal - denoised_signal
-            stats = calculate_statistical_data(denoised_signal, noise)
-            df_stats_denoised = pd.DataFrame(stats.items(), columns=["Parameter", "Value"])
-            csv_denoised = convert_df(df_stats_denoised)
-            st.download_button("Download Denoised Signal Stats", data=csv_denoised, file_name="denoised_signal_stats.csv", mime='text/csv')
+        st.subheader("Download Statistical Parameters")
+        noise = np.zeros_like(Signal)
+        stats = calculate_statistical_data(Signal, noise)
+        df_stats = pd.DataFrame(stats.items(), columns=["Parameter", "Value"])
+        @st.cache_data
+        def convert_df(df):
+            return df.to_csv(index=False).encode('utf-8')
+        csv = convert_df(df_stats)
+        st.download_button("Download Raw Signal Stats", data=csv, file_name="raw_signal_stats.csv", mime='text/csv')
+
+        noise = Signal - denoised_signal
+        stats = calculate_statistical_data(denoised_signal, noise)
+        df_stats_denoised = pd.DataFrame(stats.items(), columns=["Parameter", "Value"])
+        csv_denoised = convert_df(df_stats_denoised)
+        st.download_button("Download Denoised Signal Stats", data=csv_denoised, file_name="denoised_signal_stats.csv", mime='text/csv')
