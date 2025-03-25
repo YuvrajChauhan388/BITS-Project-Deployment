@@ -144,7 +144,6 @@ with container:
         fft_raw = np.abs(np.fft.fft(Signal))[:len(Signal) // 2]
         fft_freqs = np.linspace(0, 20000 / 2, len(fft_raw))
         fft_denoised = np.abs(np.fft.fft(denoised_signal))[:len(Signal) // 2]
-
         fig_fft = go.Figure()
         if fft_option == 'FFT of Raw Signal':
             fig_fft.add_trace(go.Scatter(x=fft_freqs, y=fft_raw, mode='lines', name='FFT of Raw Signal'))
@@ -204,10 +203,55 @@ with container:
             def convert_df(df):
                 return df.to_csv(index=False).encode('utf-8')
             csv = convert_df(df_stats)
-            st.download_button("Download Raw Signal Stats", data=csv, file_name="raw_signal_stats.csv", mime='text/csv')
+            st.download_button(
+                "Download Raw Signal Stats",
+                data=csv,
+                file_name="raw_signal_stats.csv",
+                mime='text/csv',
+                key='raw_signal_stats',
+                help='Click to download raw signal statistics',
+                on_click=None,
+                args=None,
+                kwargs=None,
+                disabled=False,
+                use_container_width=False,
+                type='primary',
+                style="""
+                    background-color: #FF4B4B;
+                    color: white;
+                    border: none;
+                    border-radius: 4px;
+                    padding: 10px 20px;
+                    font-size: 16px;
+                    cursor: pointer;
+                """
+            )
         with col3:
-            noise = Signal - denoised_signal
-            stats = calculate_statistical_data(denoised_signal, noise)
-            df_stats_denoised = pd.DataFrame(stats.items(), columns=["Parameter", "Value"])
-            csv_denoised = convert_df(df_stats_denoised)
-            st.download_button("Download Denoised Signal Stats", data=csv_denoised, file_name="denoised_signal_stats.csv", mime='text/csv')
+                  noise = Signal - denoised_signal
+    stats = calculate_statistical_data(denoised_signal, noise)
+    df_stats_denoised = pd.DataFrame(stats.items(), columns=["Parameter", "Value"])
+    csv_denoised = convert_df(df_stats_denoised)
+    st.download_button(
+        "Download Denoised Signal Stats",
+        data=csv_denoised,
+        file_name="denoised_signal_stats.csv",
+        mime='text/csv',
+        key='denoised_signal_stats',
+        help='Click to download denoised signal statistics',
+        on_click=None,
+        args=None,
+        kwargs=None,
+        disabled=False,
+        use_container_width=False,
+        type='primary',
+        style="""
+            background-color: #31333F;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        """
+    )
+
