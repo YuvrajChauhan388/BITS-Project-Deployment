@@ -64,22 +64,29 @@ container = st.container()
 with container:
     st.write(f"<h1 style='text-align: center;'>Wavelet Based Feature Extraction</h1>", unsafe_allow_html=True)
 
-    # Add expandable introduction section
+    # Add expandable introduction section with background color
     with st.expander("Introduction", expanded=False):
-        st.write("""
-        Sybilytics.AI is a Streamlit-based web application designed for wavelet-based feature extraction from sensor signals. Users can upload signal data in .txt or .lvm formats, which is then processed using the Biorthogonal 2.4 (bior2.4) wavelet. The app allows dynamic control over the wavelet decomposition level (1–20) to suit different analysis needs.
+        st.markdown(
+            """
+            <div style="background-color: #f0f8ff; padding: 15px; border-radius: 5px;">
+            <p>Sybilytics.AI is a Streamlit-based web application designed for wavelet-based feature extraction from sensor signals. Users can upload signal data in .txt or .lvm formats, which is then processed using the Biorthogonal 2.4 (bior2.4) wavelet. The app allows dynamic control over the wavelet decomposition level (1–20) to suit different analysis needs.</p>
 
-        The platform provides comprehensive visualizations, including:
-        • Time-domain plots (for both raw and denoised signals)
-        • STFT spectrograms (for both raw and denoised signals)
-        • FFT plots (for both raw and denoised signals), and
-        • Wavelet decomposition plots (approximation & detail coefficients)
-        • Correlation plots (approximation & detail coefficients)
+            <p>The platform provides comprehensive visualizations, including:</p>
+            <ul>
+            <li>Time-domain plots (for both raw and denoised signals)</li>
+            <li>STFT spectrograms (for both raw and denoised signals)</li>
+            <li>FFT plots (for both raw and denoised signals)</li>
+            <li>Wavelet decomposition plots (approximation & detail coefficients)</li>
+            <li>Correlation plots (approximation & detail coefficients)</li>
+            </ul>
 
-        Users can download any plot as a PNG image. Beyond visualization, the app extracts statistical, energy-based, and entropy-based features from both signal versions, with the option to download the features for further analysis.
+            <p>Users can download any plot as a PNG image. Beyond visualization, the app extracts statistical, energy-based, and entropy-based features from both signal versions, with the option to download the features for further analysis.</p>
 
-        Sybilytics.AI is a powerful and user-friendly tool for researchers, engineers, and data analysts working with time-series sensor data and looking to perform fast, interactive, and insightful signal processing.
-        """)
+            <p>Sybilytics.AI is a powerful and user-friendly tool for researchers, engineers, and data analysts working with time-series sensor data and looking to perform fast, interactive, and insightful signal processing.</p>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
     uploaded_file = st.file_uploader("Choose a file")
     
@@ -206,42 +213,43 @@ with container:
             xaxis_title_font_color='black',
             yaxis_title_font_color='black'
         )
+
         st.plotly_chart(fig_spectrum, use_container_width=True, key='spectrum_plot')
 
         # Download statistical parameters
-st.markdown(f"<h3 style='text-align: center;'>Download Statistical Parameters</h3>", unsafe_allow_html=True)
-
-col1, col2, col3 = st.columns([1, 1, 1])
-with col1:
-    noise = np.zeros_like(Signal)
-    stats = calculate_statistical_data(Signal, noise)
-    df_stats = pd.DataFrame(stats.items(), columns=["Parameter", "Value"])
-    @st.cache_data
-    def convert_df(df):
-        return df.to_csv(index=False).encode('utf-8')
-    csv = convert_df(df_stats)
-    st.download_button(
-        "Download Raw Signal Stats",
-        data=csv,
-        file_name="raw_signal_stats.csv",
-        mime='text/csv',
-        key='raw_signal_stats',
-        help='Click to download raw signal statistics',
-        use_container_width=True,
-        type='primary'
-    )
-with col3:
-    noise = Signal - denoised_signal
-    stats = calculate_statistical_data(denoised_signal, noise)
-    df_stats_denoised = pd.DataFrame(stats.items(), columns=["Parameter", "Value"])
-    csv_denoised = convert_df(df_stats_denoised)
-    st.download_button(
-        "Download Denoised Signal Stats",
-        data=csv_denoised,
-        file_name="denoised_signal_stats.csv",
-        mime='text/csv',
-        key='denoised_signal_stats',
-        help='Click to download denoised signal statistics',
-        use_container_width=True,
-        type='primary'
-    )
+        st.markdown(f"<h3 style='text-align: center;'>Download Statistical Parameters</h3>", unsafe_allow_html=True)
+        
+        col1, col2, col3 = st.columns([1, 1, 1])
+        with col1:
+            noise = np.zeros_like(Signal)
+            stats = calculate_statistical_data(Signal, noise)
+            df_stats = pd.DataFrame(stats.items(), columns=["Parameter", "Value"])
+            @st.cache_data
+            def convert_df(df):
+                return df.to_csv(index=False).encode('utf-8')
+            csv = convert_df(df_stats)
+            st.download_button(
+                "Download Raw Signal Stats",
+                data=csv,
+                file_name="raw_signal_stats.csv",
+                mime='text/csv',
+                key='raw_signal_stats',
+                help='Click to download raw signal statistics',
+                use_container_width=True,
+                type='primary'
+            )
+        with col3:
+            noise = Signal - denoised_signal
+            stats = calculate_statistical_data(denoised_signal, noise)
+            df_stats_denoised = pd.DataFrame(stats.items(), columns=["Parameter", "Value"])
+            csv_denoised = convert_df(df_stats_denoised)
+            st.download_button(
+                "Download Denoised Signal Stats",
+                data=csv_denoised,
+                file_name="denoised_signal_stats.csv",
+                mime='text/csv',
+                key='denoised_signal_stats',
+                help='Click to download denoised signal statistics',
+                use_container_width=True,
+                type='primary'
+            )
