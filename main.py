@@ -226,5 +226,5 @@ with col3:
         key='denoised_signal_stats',
         help='Click to download denoised signal statistics',
         use_container_width=True,
-        type='secondary'
+        type='primary'
     )
