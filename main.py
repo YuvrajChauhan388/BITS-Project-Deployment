@@ -191,7 +191,7 @@ with container:
         )
         st.plotly_chart(fig_spectrum, use_container_width=True, key='spectrum_plot')
 
-        # Download statistical parameters
+       # Download statistical parameters
 st.markdown(f"<h3 style='text-align: center;'>Download Statistical Parameters</h3>", unsafe_allow_html=True)
 
 col1, col2, col3 = st.columns([1, 1, 1])
