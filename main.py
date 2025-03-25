@@ -69,7 +69,7 @@ with container:
         st.markdown(
             """
             <div style="background-color: #f0f8ff; padding: 15px; border-radius: 5px;">
-            <p>Sybilytics.AI is a Streamlit-based web application designed for wavelet-based feature extraction from sensor signals. Users can upload signal data in .txt or .lvm formats, which is then processed using the Biorthogonal 2.4 (bior2.4) wavelet. The app allows dynamic control over the wavelet decomposition level (1–20) to suit different analysis needs.</p>
+            <p>Sybilytics-AI is a Streamlit-based web application designed for wavelet-based feature extraction from sensor signals. Users can upload signal data in .txt or .lvm formats, which is then processed using the Biorthogonal 2.4 (bior2.4) wavelet. The app allows dynamic control over the wavelet decomposition level (1–20) to suit different analysis needs.</p>
 
             <p>The platform provides comprehensive visualizations, including:</p>
             <ul>
