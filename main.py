@@ -65,6 +65,19 @@ with container:
     st.write(f"<h1 style='text-align: center;'>Wavelet Based Feature Extraction</h1>", unsafe_allow_html=True)
 
     uploaded_file = st.file_uploader("Choose a file")
+
+    # New textbox with introduction
+    st.text_area("Introduction", 
+    """Sybilytics.AI is a Streamlit-based web application designed for wavelet-based feature extraction from sensor signals. Users can upload signal data in .txt or .lvm formats, which is then processed using the Biorthogonal 2.4 (bior2.4) wavelet. The app allows dynamic control over the wavelet decomposition level (1–20) to suit different analysis needs.
+The platform provides comprehensive visualizations, including:
+•	Time-domain plots (for both raw and denoised signals)
+•	STFT spectrograms (for both raw and denoised signals)
+•	FFT plots (for both raw and denoised signals), and
+•	Wavelet decomposition plots (approximation & detail coefficients)
+•	Correlation plots (approximation & detail coefficients)
+Users can download any plot as a PNG image. Beyond visualization, the app extracts statistical, energy-based, and entropy-based features from both signal versions, with the option to download the features for further analysis.
+Sybilytics.AI is a powerful and user-friendly tool for researchers, engineers, and data analysts working with time-series sensor data and looking to perform fast, interactive, and insightful signal processing.""", 
+    height=300)
     
     if uploaded_file is not None:
         df = pd.read_csv(uploaded_file, delimiter='\t', header=None)
@@ -191,7 +204,7 @@ with container:
         )
         st.plotly_chart(fig_spectrum, use_container_width=True, key='spectrum_plot')
 
-       # Download statistical parameters
+        # Download statistical parameters
 st.markdown(f"<h3 style='text-align: center;'>Download Statistical Parameters</h3>", unsafe_allow_html=True)
 
 col1, col2, col3 = st.columns([1, 1, 1])
