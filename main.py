@@ -37,7 +37,7 @@ def calculate_statistical_data(reconstructed_signal, noise):
     }
     return params
 
-# Streamlit app
+# Streamlit app setup
 st.markdown(
     """
     <style>
@@ -64,25 +64,22 @@ container = st.container()
 with container:
     st.write(f"<h1 style='text-align: center;'>Wavelet Based Feature Extraction</h1>", unsafe_allow_html=True)
 
-    # Add expandable introduction section with background color
+    # Introduction section
     with st.expander("Introduction", expanded=False):
         st.markdown(
             """
             <div style="background-color: #f0f8ff; padding: 15px; border-radius: 5px;">
-            <p>Sybilytics-AI is a Streamlit-based web application designed for wavelet-based feature extraction from sensor signals. Users can upload signal data in .txt or .lvm formats, which is then processed using the Biorthogonal 2.4 (bior2.4) wavelet. The app allows dynamic control over the wavelet decomposition level (1–20) to suit different analysis needs.</p>
+            <p>Sybilytics-AI is a Streamlit-based web application designed for wavelet-based feature extraction from sensor signals. Users can upload signal data in .txt or .lvm formats, which is then processed using the Biorthogonal 2.4 (bior2.4) wavelet.</p>
 
-            <p>The platform provides comprehensive visualizations, including:</p>
+            <p>The platform provides comprehensive visualizations:</p>
             <ul>
-            <li>Time-domain plots (for both raw and denoised signals)</li>
-            <li>STFT spectrograms (for both raw and denoised signals)</li>
-            <li>FFT plots (for both raw and denoised signals)</li>
-            <li>Wavelet decomposition plots (approximation & detail coefficients)</li>
-            <li>Correlation plots (approximation & detail coefficients)</li>
+            <li>Time-domain plots (raw and denoised signals)</li>
+            <li>STFT spectrograms</li>
+            <li>FFT plots</li>
+            <li>Wavelet decomposition plots</li>
             </ul>
 
-            <p>Users can download any plot as a PNG image. Beyond visualization, the app extracts statistical, energy-based, and entropy-based features from both signal versions, with the option to download the features for further analysis.</p>
-
-            <p>Sybilytics.AI is a powerful and user-friendly tool for researchers, engineers, and data analysts working with time-series sensor data and looking to perform fast, interactive, and insightful signal processing.</p>
+            <p>Users can download any plot as a PNG image and extract statistical features for further analysis.</p>
             </div>
             """,
             unsafe_allow_html=True
@@ -106,26 +103,31 @@ with container:
 
         # Source signal plot
         st.subheader("Source Signal")
-        source_signal = st.selectbox("Select Source Signal", ['Raw Signal', 'Denoised Signal'])
+        source_option = st.selectbox("Select Source Signal", ['Raw Signal', 'Denoised Signal'])
+        
         fig_source = go.Figure()
-        if source_signal == 'Raw Signal':
+        
+        if source_option == 'Raw Signal':
             fig_source.add_trace(go.Scatter(x=time, y=Signal, mode='lines', name='Raw Signal'))
-        elif source_signal == 'Denoised Signal':
+        
+        elif source_option == 'Denoised Signal':
             coeffs = pywt.wavedec(Signal, 'bior2.4', level=7)
             threshold = lambda x: np.sqrt(2 * np.log(len(x))) * np.median(np.abs(x) / 0.6745)
             denoised_coeffs = [pywt.threshold(c, threshold(c), mode='soft') if i > 0 else c for i, c in enumerate(coeffs)]
             denoised_signal = pywt.waverec(denoised_coeffs, 'bior2.4')[:len(Signal)]
             fig_source.add_trace(go.Scatter(x=time, y=denoised_signal, mode='lines', name='Denoised Signal'))
+        
         fig_source.update_layout(
-            font=dict(size=14),
+            font=dict(size=18),  # Increased font size
             xaxis_title="Time",
             yaxis_title="Amplitude",
-            legend=dict(font=dict(size=14)),
-            xaxis=dict(tickcolor='black', tickfont=dict(color='black')),
-            yaxis=dict(tickcolor='black', tickfont=dict(color='black')),
+            legend=dict(font=dict(size=18)),  # Increased legend font size
+            xaxis=dict(tickcolor='black', tickfont=dict(color='black', size=18)),  # Increased tick font size
+            yaxis=dict(tickcolor='black', tickfont=dict(color='black', size=18)),  # Increased tick font size
             xaxis_title_font_color='black',
             yaxis_title_font_color='black'
         )
+        
         st.plotly_chart(fig_source, use_container_width=True, key='source_plot')
 
         # Wavelet denoising
