@@ -108,8 +108,8 @@ with container:
             legend=dict(font=dict(size=18)),
             xaxis=dict(tickcolor='black', tickfont=dict(color='black', size=18)),
             yaxis=dict(tickcolor='black', tickfont=dict(color='black', size=18)),
-            xaxis_title_font_color='black',
-            yaxis_title_font_color='black'
+            xaxis_title_font=dict(size=18),
+            yaxis_title_font=dict(size=18)
         )
         st.plotly_chart(fig_source, use_container_width=True, key='source_plot')
 
@@ -148,8 +148,8 @@ with container:
             legend=dict(font=dict(size=18)),
             xaxis=dict(tickcolor='black', tickfont=dict(color='black', size=18)),
             yaxis=dict(tickcolor='black', tickfont=dict(color='black', size=18)),
-            xaxis_title_font_color='black',
-            yaxis_title_font_color='black'
+            xaxis_title_font=dict(size=18),
+            yaxis_title_font=dict(size=18)
         )
         st.plotly_chart(fig_wavelet, use_container_width=True, key='wavelet_plot')
 
@@ -187,8 +187,8 @@ with container:
             legend=dict(font=dict(size=18)),
             xaxis=dict(tickcolor='black', tickfont=dict(color='black', size=18)),
             yaxis=dict(tickcolor='black', tickfont=dict(color='black', size=18)),
-            xaxis_title_font_color='black',
-            yaxis_title_font_color='black'
+            xaxis_title_font=dict(size=18),
+            yaxis_title_font=dict(size=18)
         )
         st.plotly_chart(fig_fft, use_container_width=True, key='fft_plot')
 
@@ -209,8 +209,8 @@ with container:
             yaxis_title="Frequency",
             xaxis=dict(tickcolor='black', tickfont=dict(color='black', size=18)),
             yaxis=dict(tickcolor='black', tickfont=dict(color='black', size=18)),
-            xaxis_title_font_color='black',
-            yaxis_title_font_color='black'
+            xaxis_title_font=dict(size=18),
+            yaxis_title_font=dict(size=18)
         )
         st.plotly_chart(fig_spectrum, use_container_width=True, key='spectrum_plot')
 
