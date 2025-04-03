@@ -59,7 +59,7 @@ button {
 
 container = st.container()
 with container:
-    st.write(f"<h1 style='text-align: center;'>Wavelet Based Feature Extraction</h1>", unsafe_allow_html=True)
+    st.write(f"<h1 style='text-align: center;'>Feature Extraction of Digital Signal</h1>", unsafe_allow_html=True)
 
     with st.expander("Introduction", expanded=False):
         st.markdown(
