@@ -65,7 +65,20 @@ with container:
         st.markdown(
             """
             <div style="background-color: #f0f8ff; padding: 15px; border-radius: 5px;">
-            <p>Sybilytics.AI is a Streamlit-based web application designed for wavelet-based feature extraction...</p>
+            <p>Sybilytics.AI is a Streamlit-based web application designed for wavelet-based feature extraction from sensor signals. Users can upload signal data in .txt or .lvm formats, which is then processed using the Biorthogonal 2.4 (bior2.4) wavelet. The app allows dynamic control over the wavelet decomposition level (1–20) to suit different analysis needs.</p>
+
+            <p>The platform provides comprehensive visualizations, including:</p>
+            <ul>
+            <li>Time-domain plots (for both raw and denoised signals)</li>
+            <li>STFT spectrograms (for both raw and denoised signals)</li>
+            <li>FFT plots (for both raw and denoised signals)</li>
+            <li>Wavelet decomposition plots (approximation & detail coefficients)</li>
+            <li>Correlation plots (approximation & detail coefficients)</li>
+            </ul>
+
+            <p>Users can download any plot as a PNG image. Beyond visualization, the app extracts statistical, energy-based, and entropy-based features from both signal versions, with the option to download the features for further analysis.</p>
+
+            <p>Sybilytics.AI is a powerful and user-friendly tool for researchers, engineers, and data analysts working with time-series sensor data and looking to perform fast, interactive, and insightful signal processing.</p>
             </div>
             """,
             unsafe_allow_html=True
