@@ -100,21 +100,23 @@ with container:
         time = df.iloc[:, column_options.index(time_column)].values
         Signal = df.iloc[:, column_options.index(signal_column)].values
 
-        # Wavelet selection dropdown
+        # Source Signal Plot
+        st.subheader("Source Signal")
+        source_signal = st.selectbox("Select Source Signal", ['Raw Signal', 'Denoised Signal'])
+        
+        # Wavelet selection dropdown moved to denoising section
         wavelet_options = ['bior1.3', 'bior1.5', 'bior2.2', 'bior2.4', 
                          'bior2.6', 'bior2.6', 'bior3.1', 'bior3.3', 
                          'bior3.5', 'bior3.7', 'bior3.9', 'bior4.4', 
                          'bior5.5', 'bior6.8']
-        selected_wavelet = st.selectbox("Select Wavelet", wavelet_options)
 
-        # Source Signal Plot
-        st.subheader("Source Signal")
-        source_signal = st.selectbox("Select Source Signal", ['Raw Signal', 'Denoised Signal'])
         fig_source = go.Figure()
         
         if source_signal == 'Raw Signal':
             fig_source.add_trace(go.Scatter(x=time, y=Signal, mode='lines', name='Raw Signal'))
         elif source_signal == 'Denoised Signal':
+            # Get selected wavelet from denoising section
+            selected_wavelet = st.session_state.selected_wavelet
             coeffs = pywt.wavedec(Signal, selected_wavelet, level=7)
             threshold = lambda x: np.sqrt(2 * np.log(len(x))) * np.median(np.abs(x) / 0.6745)
             denoised_coeffs = [pywt.threshold(c, threshold(c), mode='soft') if i > 0 else c for i, c in enumerate(coeffs)]
@@ -135,6 +137,15 @@ with container:
 
         # Wavelet Denoising Plot
         st.subheader("Wavelet Denoising")
+        
+        # Added wavelet selection dropdown here
+        selected_wavelet = st.selectbox(
+            "Select Wavelet Type", 
+            wavelet_options,
+            key='wavelet_selector'
+        )
+        st.session_state.selected_wavelet = selected_wavelet
+
         wavelet_option = st.selectbox("Select Wavelet Denoising Option", 
                                     ['Approximate Coefficients', 'Detailed Coefficients', 
                                      'Pearson CC (Approximate)', 'Pearson CC (Detailed)'])
