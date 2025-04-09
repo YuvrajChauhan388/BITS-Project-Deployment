@@ -65,7 +65,7 @@ with container:
         st.markdown(
             """
             <div style="background-color: #f0f8ff; padding: 15px; border-radius: 5px;">
-            <p>Sibilytics-AI is a Streamlit-based web application designed for wavelet-based feature extraction from sensor signals. Users can upload signal data in .txt or .lvm formats, which is then processed using the Biorthogonal 2.4 (bior2.4) wavelet. The app allows dynamic control over the wavelet decomposition level (1–20) to suit different analysis needs.</p>
+            <p>Sybilytics.AI is a Streamlit-based web application designed for wavelet-based feature extraction from sensor signals. Users can upload signal data in .txt or .lvm formats, which is then processed using the Biorthogonal 2.4 (bior2.4) wavelet. The app allows dynamic control over the wavelet decomposition level (1–20) to suit different analysis needs.</p>
 
             <p>The platform provides comprehensive visualizations, including:</p>
             <ul>
@@ -78,7 +78,7 @@ with container:
 
             <p>Users can download any plot as a PNG image. Beyond visualization, the app extracts statistical, energy-based, and entropy-based features from both signal versions, with the option to download the features for further analysis.</p>
 
-            <p>Sibilytics-AI is a powerful and user-friendly tool for researchers, engineers, and data analysts working with time-series sensor data and looking to perform fast, interactive, and insightful signal processing.</p>
+            <p>Sybilytics.AI is a powerful and user-friendly tool for researchers, engineers, and data analysts working with time-series sensor data and looking to perform fast, interactive, and insightful signal processing.</p>
             </div>
             """,
             unsafe_allow_html=True
@@ -100,6 +100,13 @@ with container:
         time = df.iloc[:, column_options.index(time_column)].values
         Signal = df.iloc[:, column_options.index(signal_column)].values
 
+        # Wavelet selection dropdown
+        wavelet_options = ['bior1.3', 'bior1.5', 'bior2.2', 'bior2.4', 
+                         'bior2.6', 'bior2.6', 'bior3.1', 'bior3.3', 
+                         'bior3.5', 'bior3.7', 'bior3.9', 'bior4.4', 
+                         'bior5.5', 'bior6.8']
+        selected_wavelet = st.selectbox("Select Wavelet", wavelet_options)
+
         # Source Signal Plot
         st.subheader("Source Signal")
         source_signal = st.selectbox("Select Source Signal", ['Raw Signal', 'Denoised Signal'])
@@ -108,10 +115,10 @@ with container:
         if source_signal == 'Raw Signal':
             fig_source.add_trace(go.Scatter(x=time, y=Signal, mode='lines', name='Raw Signal'))
         elif source_signal == 'Denoised Signal':
-            coeffs = pywt.wavedec(Signal, 'bior2.4', level=7)
+            coeffs = pywt.wavedec(Signal, selected_wavelet, level=7)
             threshold = lambda x: np.sqrt(2 * np.log(len(x))) * np.median(np.abs(x) / 0.6745)
             denoised_coeffs = [pywt.threshold(c, threshold(c), mode='soft') if i > 0 else c for i, c in enumerate(coeffs)]
-            denoised_signal = pywt.waverec(denoised_coeffs, 'bior2.4')[:len(Signal)]
+            denoised_signal = pywt.waverec(denoised_coeffs, selected_wavelet)[:len(Signal)]
             fig_source.add_trace(go.Scatter(x=time, y=denoised_signal, mode='lines', name='Denoised Signal'))
         
         fig_source.update_layout(
@@ -132,10 +139,10 @@ with container:
                                     ['Approximate Coefficients', 'Detailed Coefficients', 
                                      'Pearson CC (Approximate)', 'Pearson CC (Detailed)'])
         n_levels = st.slider("Define number of levels (1-20):", 1, 20, 7)
-        coeffs = pywt.wavedec(Signal, 'bior2.4', level=n_levels)
+        coeffs = pywt.wavedec(Signal, selected_wavelet, level=n_levels)
         threshold = lambda x: np.sqrt(2 * np.log(len(x))) * np.median(np.abs(x) / 0.6745)
         denoised_coeffs = [pywt.threshold(c, threshold(c), mode='soft') if i > 0 else c for i, c in enumerate(coeffs)]
-        denoised_signal = pywt.waverec(denoised_coeffs, 'bior2.4')[:len(Signal)]
+        denoised_signal = pywt.waverec(denoised_coeffs, selected_wavelet)[:len(Signal)]
         
         fig_wavelet = go.Figure()
         if wavelet_option == 'Approximate Coefficients':
