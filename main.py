@@ -31,7 +31,8 @@ def calculate_statistical_data(reconstructed_signal, noise):
         "Root Mean Square Error": np.sqrt(mean_squared_error(np.zeros_like(reconstructed_signal), reconstructed_signal)),
         "Maximum Error": np.max(np.abs(np.zeros_like(reconstructed_signal) - reconstructed_signal)),
         "Mean Absolute Error": np.mean(np.abs(np.zeros_like(reconstructed_signal) - reconstructed_signal)),
-        "Peak Signal-to-Noise Ratio": 20 * np.log10(np.max(np.zeros_like(reconstructed_signal)) / np.sqrt(mean_squared_error(np.zeros_like(reconstructed_signal), reconstructed_signal))),
+        "Peak Signal-to-Noise Ratio": 20 * np.log10(np.max(np.zeros_like(reconstructed_signal)) / 
+                                                    np.sqrt(mean_squared_error(np.zeros_like(reconstructed_signal), reconstructed_signal))),
         "Coefficient of Variation": np.std(reconstructed_signal) / np.mean(reconstructed_signal)
     }
     return params
@@ -65,7 +66,7 @@ with container:
         st.markdown(
             """
             <div style="background-color: #f0f8ff; padding: 15px; border-radius: 5px;">
-            <p>Sybilytics.AI is a Streamlit-based web application designed for wavelet-based feature extraction from sensor signals. Users can upload signal data in .txt or .lvm formats, which is then processed using the Biorthogonal 2.4 (bior2.4) wavelet. The app allows dynamic control over the wavelet decomposition level (1–20) to suit different analysis needs.</p>
+            <p>Sybilytics.AI is a Streamlit-based web application designed for wavelet-based feature extraction from sensor signals. Users can upload signal data in .txt or .lvm formats, which is then processed using the Biorthogonal (bior) wavelet. The app allows dynamic control over the wavelet decomposition level (1–20) to suit different analysis needs.</p>
 
             <p>The platform provides comprehensive visualizations, including:</p>
             <ul>
@@ -100,19 +101,21 @@ with container:
         time = df.iloc[:, column_options.index(time_column)].values
         Signal = df.iloc[:, column_options.index(signal_column)].values
 
+        # Source Signal Plot
+        st.subheader("Source Signal")
+        source_signal = st.selectbox("Select Source Signal", ['Raw Signal', 'Denoised Signal'])
+        
         wavelet_options = ['bior1.3', 'bior1.5', 'bior2.2', 'bior2.4', 
                          'bior2.6', 'bior2.6', 'bior3.1', 'bior3.3', 
                          'bior3.5', 'bior3.7', 'bior3.9', 'bior4.4', 
                          'bior5.5', 'bior6.8']
-        selected_wavelet = st.selectbox("Select Wavelet", wavelet_options)
 
-        st.subheader("Source Signal")
-        source_signal = st.selectbox("Select Source Signal", ['Raw Signal', 'Denoised Signal'])
         fig_source = go.Figure()
         
         if source_signal == 'Raw Signal':
             fig_source.add_trace(go.Scatter(x=time, y=Signal, mode='lines', name='Raw Signal'))
         elif source_signal == 'Denoised Signal':
+            selected_wavelet = st.session_state.selected_wavelet
             coeffs = pywt.wavedec(Signal, selected_wavelet, level=7)
             threshold = lambda x: np.sqrt(2 * np.log(len(x))) * np.median(np.abs(x) / 0.6745)
             denoised_coeffs = [pywt.threshold(c, threshold(c), mode='soft') if i > 0 else c for i, c in enumerate(coeffs)]
@@ -124,28 +127,24 @@ with container:
             xaxis_title="Time (s)",
             yaxis_title="Amplitude (V)",
             legend=dict(font=dict(size=18)),
-            xaxis=dict(
-                showline=True,
-                linecolor='black',
-                linewidth=2,
-                mirror=True,
-                tickcolor='black',
-                tickfont=dict(color='black', size=18)
-            ),
-            yaxis=dict(
-                showline=True,
-                linecolor='black',
-                linewidth=2,
-                mirror=True,
-                tickcolor='black',
-                tickfont=dict(color='black', size=18)
-            ),
+            xaxis=dict(showline=True, linewidth=1, linecolor='black', tickcolor='black', 
+                      tickfont=dict(color='black', size=18)),
+            yaxis=dict(showline=True, linewidth=1, linecolor='black', tickcolor='black',
+                      tickfont=dict(color='black', size=18)),
             xaxis_title_font=dict(size=18),
             yaxis_title_font=dict(size=18)
         )
         st.plotly_chart(fig_source, use_container_width=True, key='source_plot')
 
+        # Wavelet Denoising Plot
         st.subheader("Wavelet Denoising")
+        
+        selected_wavelet = st.selectbox(
+            "Select Wavelet Type", 
+            wavelet_options,
+            key='wavelet_selector'
+        )
+        st.session_state.selected_wavelet = selected_wavelet
         wavelet_option = st.selectbox("Select Wavelet Denoising Option", 
                                     ['Approximate Coefficients', 'Detailed Coefficients', 
                                      'Pearson CC (Approximate)', 'Pearson CC (Detailed)'])
@@ -172,32 +171,29 @@ with container:
             fig_wavelet.add_trace(go.Bar(x=[f'Detail {i+1}' for i in range(len(detail_coeffs))], 
                                        y=correlation_detail, name='Pearson CC'))
         
+        # Dynamic axis titles
+        if wavelet_option in ['Approximate Coefficients', 'Detailed Coefficients']:
+            x_title = "Index"
+            y_title = "Coefficient Value (V)"
+        else:
+            x_title = "Coefficient Type"
+            y_title = "Correlation Coefficient (unitless)"
+        
         fig_wavelet.update_layout(
             font=dict(size=18),
-            xaxis_title="Index (n)",
-            yaxis_title="Coefficient Value",
+            xaxis_title=x_title,
+            yaxis_title=y_title,
             legend=dict(font=dict(size=18)),
-            xaxis=dict(
-                showline=True,
-                linecolor='black',
-                linewidth=2,
-                mirror=True,
-                tickcolor='black',
-                tickfont=dict(color='black', size=18)
-            ),
-            yaxis=dict(
-                showline=True,
-                linecolor='black',
-                linewidth=2,
-                mirror=True,
-                tickcolor='black',
-                tickfont=dict(color='black', size=18)
-            ),
+            xaxis=dict(showline=True, linewidth=1, linecolor='black', tickcolor='black',
+                      tickfont=dict(color='black', size=18)),
+            yaxis=dict(showline=True, linewidth=1, linecolor='black', tickcolor='black',
+                      tickfont=dict(color='black', size=18)),
             xaxis_title_font=dict(size=18),
             yaxis_title_font=dict(size=18)
         )
         st.plotly_chart(fig_wavelet, use_container_width=True, key='wavelet_plot')
 
+        # FFT Plot
         st.subheader("FFT of Signals")
         fft_option = st.selectbox("Select FFT Option", 
                                 ['FFT of Raw Signal', 'FFT of Denoised Signal', 
@@ -227,76 +223,42 @@ with container:
         fig_fft.update_layout(
             font=dict(size=18),
             xaxis_title="Frequency (Hz)",
-            yaxis_title="Amplitude (V/√Hz)",
+            yaxis_title="Amplitude (V)",
             legend=dict(font=dict(size=18)),
-            xaxis=dict(
-                showline=True,
-                linecolor='black',
-                linewidth=2,
-                mirror=True,
-                tickcolor='black',
-                tickfont=dict(color='black', size=18)
-            ),
-            yaxis=dict(
-                showline=True,
-                linecolor='black',
-                linewidth=2,
-                mirror=True,
-                tickcolor='black',
-                tickfont=dict(color='black', size=18)
-            ),
+            xaxis=dict(showline=True, linewidth=1, linecolor='black', tickcolor='black',
+                      tickfont=dict(color='black', size=18)),
+            yaxis=dict(showline=True, linewidth=1, linecolor='black', tickcolor='black',
+                      tickfont=dict(color='black', size=18)),
             xaxis_title_font=dict(size=18),
             yaxis_title_font=dict(size=18)
         )
         st.plotly_chart(fig_fft, use_container_width=True, key='fft_plot')
 
+        # Time-Frequency Spectrum Plot
         st.subheader("Time-Frequency Spectrum")
         spectrum_option = st.selectbox("Select Time-Frequency Spectrum Option", ['Raw Signal', 'Denoised Signal'])
         
         if spectrum_option == 'Raw Signal':
             f, t, Sxx = spectrogram(Signal, 20000)
-            fig_spectrum = go.Figure(data=go.Heatmap(
-                z=10 * np.log10(Sxx),
-                x=t,
-                y=f,
-                colorscale='Viridis',
-                colorbar=dict(title='Intensity (dB)')
-            ))
+            fig_spectrum = go.Figure(data=go.Heatmap(z=10 * np.log10(Sxx), x=t, y=f, colorscale='Viridis'))
         else:
             f, t, Sxx = spectrogram(denoised_signal, 20000)
-            fig_spectrum = go.Figure(data=go.Heatmap(
-                z=10 * np.log10(Sxx),
-                x=t,
-                y=f,
-                colorscale='Plasma',
-                colorbar=dict(title='Intensity (dB)')
-            ))
+            fig_spectrum = go.Figure(data=go.Heatmap(z=10 * np.log10(Sxx), x=t, y=f, colorscale='Plasma'))
         
         fig_spectrum.update_layout(
             font=dict(size=18),
             xaxis_title="Time (s)",
             yaxis_title="Frequency (Hz)",
-            xaxis=dict(
-                showline=True,
-                linecolor='black',
-                linewidth=2,
-                mirror=True,
-                tickcolor='black',
-                tickfont=dict(color='black', size=18)
-            ),
-            yaxis=dict(
-                showline=True,
-                linecolor='black',
-                linewidth=2,
-                mirror=True,
-                tickcolor='black',
-                tickfont=dict(color='black', size=18)
-            ),
+            xaxis=dict(showline=True, linewidth=1, linecolor='black', tickcolor='black',
+                      tickfont=dict(color='black', size=18)),
+            yaxis=dict(showline=True, linewidth=1, linecolor='black', tickcolor='black',
+                      tickfont=dict(color='black', size=18)),
             xaxis_title_font=dict(size=18),
             yaxis_title_font=dict(size=18)
         )
         st.plotly_chart(fig_spectrum, use_container_width=True, key='spectrum_plot')
 
+        # Statistical Parameters Download
         st.markdown(f"<h3 style='text-align: center;'>Download Statistical Parameters</h3>", unsafe_allow_html=True)
         
         col1, col2, col3 = st.columns([1, 1, 1])
