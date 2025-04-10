@@ -198,25 +198,31 @@ with container:
         fft_option = st.selectbox("Select FFT Option", 
                                 ['FFT of Raw Signal', 'FFT of Denoised Signal', 
                                  'FFT of Approx Coefficients', 'FFT of Detail Coefficients'])
+        
+        # Modified frequency ranges
         fft_raw = np.abs(np.fft.fft(Signal))[:len(Signal) // 2]
-        fft_freqs = np.linspace(0, 20000 / 2, len(fft_raw))
+        fft_freqs = np.linspace(100, 20000 / 2, len(fft_raw))  # Changed from 0 to 100
+        
         fft_denoised = np.abs(np.fft.fft(denoised_signal))[:len(Signal) // 2]
         
         fig_fft = go.Figure()
         if fft_option == 'FFT of Raw Signal':
             fig_fft.add_trace(go.Scatter(x=fft_freqs, y=fft_raw, mode='lines', name='FFT of Raw Signal'))
+            
         elif fft_option == 'FFT of Denoised Signal':
             fig_fft.add_trace(go.Scatter(x=fft_freqs, y=fft_denoised, mode='lines', name='FFT of Denoised Signal'))
+            
         elif fft_option == 'FFT of Approx Coefficients':
             fft_approx_coeffs = np.abs(np.fft.fft(coeffs[0]))[:len(coeffs[0]) // 2]
-            fft_freqs_approx = np.linspace(0, 20000 / 2, len(fft_approx_coeffs))
+            fft_freqs_approx = np.linspace(100, 20000 / 2, len(fft_approx_coeffs))  # Changed from 0 to 100
             fig_fft.add_trace(go.Scatter(x=fft_freqs_approx, y=fft_approx_coeffs, 
                                       mode='lines', name='FFT of Approx Coefficients'))
+            
         elif fft_option == 'FFT of Detail Coefficients':
             detail_coeffs = coeffs[1:]
             for i, coeff in enumerate(detail_coeffs):
                 fft_detail_coeffs = np.abs(np.fft.fft(coeff))[:len(coeff) // 2]
-                fft_freqs_detail = np.linspace(0, 20000 / 2, len(fft_detail_coeffs))
+                fft_freqs_detail = np.linspace(100, 20000 / 2, len(fft_detail_coeffs))  # Changed from 0 to 100
                 fig_fft.add_trace(go.Scatter(x=fft_freqs_detail, y=fft_detail_coeffs, 
                                           mode='lines', name=f'FFT of Detail Coefficients {i+1}'))
         
