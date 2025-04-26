@@ -6,6 +6,10 @@ from scipy.signal import spectrogram
 import plotly.graph_objects as go
 from scipy.stats import skew, kurtosis, entropy
 from sklearn.metrics import mean_squared_error
+from io import StringIO
+
+if 'all_stats' not in st.session_state:
+    st.session_state.all_stats = pd.DataFrame()
 
 def calculate_statistical_data(reconstructed_signal, noise):
     params = {
@@ -37,37 +41,28 @@ def calculate_statistical_data(reconstructed_signal, noise):
     }
     return params
 
-st.markdown(
-    """
-    <style>
-    .stApp {
-        background-color: rgba(135, 206, 235, 0.5);
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
+# Initialize session state with file_key for uploader reset
+if 'file_key' not in st.session_state:
+    st.session_state.file_key = 0
+if 'uploaded_files' not in st.session_state:
+    st.session_state.uploaded_files = {}
 
 st.markdown("""
-<style>
-button {
-    height: 40px;
-    width: 250px;
-    font-size: 16px;
-}
-</style>
-""", unsafe_allow_html=True)
+    <style>
+    .stApp {background-color: rgba(135, 206, 235, 0.5);}
+    button {height: 40px; width: 250px; font-size: 16px;}
+    </style>
+    """, unsafe_allow_html=True)
 
 container = st.container()
 with container:
     st.write(f"<h1 style='text-align: center;'>Feature Extraction of Digital Signal</h1>", unsafe_allow_html=True)
-
+    
     with st.expander("Introduction", expanded=False):
         st.markdown(
             """
             <div style="background-color: #f0f8ff; padding: 15px; border-radius: 5px;">
             <p>Sybilytics.AI is a Streamlit-based web application designed for wavelet-based feature extraction from sensor signals. Users can upload signal data in .txt or .lvm formats, which is then processed using the Biorthogonal (bior) wavelet. The app allows dynamic control over the wavelet decomposition level (1–20) to suit different analysis needs.</p>
-
             <p>The platform provides comprehensive visualizations, including:</p>
             <ul>
             <li>Time-domain plots (for both raw and denoised signals)</li>
@@ -76,50 +71,73 @@ with container:
             <li>Wavelet decomposition plots (approximation & detail coefficients)</li>
             <li>Correlation plots (approximation & detail coefficients)</li>
             </ul>
-
             <p>Users can download any plot as a PNG image. Beyond visualization, the app extracts statistical, energy-based, and entropy-based features from both signal versions, with the option to download the features for further analysis.</p>
-
             <p>Sybilytics.AI is a powerful and user-friendly tool for researchers, engineers, and data analysts working with time-series sensor data and looking to perform fast, interactive, and insightful signal processing.</p>
             </div>
             """,
             unsafe_allow_html=True
         )
 
-    uploaded_file = st.file_uploader("Choose a file")
+    # File uploader with dynamic key for proper reset
+    uploaded_files = st.file_uploader(
+        "Choose LVM files",
+        type=['lvm', 'txt'],
+        accept_multiple_files=True,
+        key=f'file_uploader_{st.session_state.file_key}'
+    )
     
-    if uploaded_file is not None:
-        df = pd.read_csv(uploaded_file, delimiter='\t', header=None)
+    # Store uploaded files in session state
+    for file in uploaded_files:
+        if file.name not in st.session_state.uploaded_files:
+            st.session_state.uploaded_files[file.name] = file.getvalue()
+    
+    if st.session_state.uploaded_files:
+        selected_file = st.selectbox("Select File for Visualization", list(st.session_state.uploaded_files.keys()))
+        
+        # Column selection implementation
+        df = pd.read_csv(
+            StringIO(st.session_state.uploaded_files[selected_file].decode('utf-8')),
+            delimiter='\t', 
+            header=None
+        )
         column_options = [f'Column {i+1}' for i in range(df.shape[1])]
-
+        
         st.write("Select Variables:")
         col1, col2 = st.columns(2)
         with col1:
-            time_column = st.selectbox("Time:", column_options)
+            time_column = st.selectbox("Time:", column_options, key=f"time_{selected_file}")
         with col2:
-            signal_column = st.selectbox("Signal:", column_options)
+            signal_column = st.selectbox("Signal:", column_options, key=f"signal_{selected_file}")
 
         time = df.iloc[:, column_options.index(time_column)].values
         Signal = df.iloc[:, column_options.index(signal_column)].values
 
-        # Source Signal Plot
-        st.subheader("Source Signal")
-        source_signal = st.selectbox("Select Source Signal", ['Raw Signal', 'Denoised Signal'])
-        
         wavelet_options = ['bior1.3', 'bior1.5', 'bior2.2', 'bior2.4', 
                          'bior2.6', 'bior2.6', 'bior3.1', 'bior3.3', 
                          'bior3.5', 'bior3.7', 'bior3.9', 'bior4.4', 
                          'bior5.5', 'bior6.8']
+        
+        selected_wavelet = st.selectbox("Select Wavelet Type", wavelet_options)
+        n_levels = st.slider("Define decomposition levels (1-20):", 1, 20, 7)
+        coeffs = pywt.wavedec(Signal, selected_wavelet, level=n_levels)
+        threshold = lambda x: np.sqrt(2 * np.log(len(x))) * np.median(np.abs(x) / 0.6745)
+        denoised_coeffs = [pywt.threshold(c, threshold(c), mode='soft') if i > 0 else c for i, c in enumerate(coeffs)]
+        denoised_signal = pywt.waverec(denoised_coeffs, selected_wavelet)[:len(Signal)]
+        
+        noise = Signal - denoised_signal
+        current_stats = calculate_statistical_data(denoised_signal, noise)
+        stats_df = pd.DataFrame([current_stats], index=[selected_file])
+        
+        if selected_file not in st.session_state.all_stats.index:
+            st.session_state.all_stats = pd.concat([st.session_state.all_stats, stats_df])
 
+        st.subheader("Source Signal")
+        source_signal = st.selectbox("Select Source Signal", ['Raw Signal', 'Denoised Signal'])
         fig_source = go.Figure()
         
         if source_signal == 'Raw Signal':
             fig_source.add_trace(go.Scatter(x=time, y=Signal, mode='lines', name='Raw Signal'))
-        elif source_signal == 'Denoised Signal':
-            selected_wavelet = st.session_state.selected_wavelet
-            coeffs = pywt.wavedec(Signal, selected_wavelet, level=7)
-            threshold = lambda x: np.sqrt(2 * np.log(len(x))) * np.median(np.abs(x) / 0.6745)
-            denoised_coeffs = [pywt.threshold(c, threshold(c), mode='soft') if i > 0 else c for i, c in enumerate(coeffs)]
-            denoised_signal = pywt.waverec(denoised_coeffs, selected_wavelet)[:len(Signal)]
+        else:
             fig_source.add_trace(go.Scatter(x=time, y=denoised_signal, mode='lines', name='Denoised Signal'))
         
         fig_source.update_layout(
@@ -136,23 +154,10 @@ with container:
         )
         st.plotly_chart(fig_source, use_container_width=True, key='source_plot')
 
-        # Wavelet Denoising Plot
         st.subheader("Wavelet Denoising")
-        
-        selected_wavelet = st.selectbox(
-            "Select Wavelet Type", 
-            wavelet_options,
-            key='wavelet_selector'
-        )
-        st.session_state.selected_wavelet = selected_wavelet
         wavelet_option = st.selectbox("Select Wavelet Denoising Option", 
                                     ['Approximate Coefficients', 'Detailed Coefficients', 
                                      'Pearson CC (Approximate)', 'Pearson CC (Detailed)'])
-        n_levels = st.slider("Define number of levels (1-20):", 1, 20, 7)
-        coeffs = pywt.wavedec(Signal, selected_wavelet, level=n_levels)
-        threshold = lambda x: np.sqrt(2 * np.log(len(x))) * np.median(np.abs(x) / 0.6745)
-        denoised_coeffs = [pywt.threshold(c, threshold(c), mode='soft') if i > 0 else c for i, c in enumerate(coeffs)]
-        denoised_signal = pywt.waverec(denoised_coeffs, selected_wavelet)[:len(Signal)]
         
         fig_wavelet = go.Figure()
         if wavelet_option == 'Approximate Coefficients':
@@ -171,7 +176,6 @@ with container:
             fig_wavelet.add_trace(go.Bar(x=[f'Detail {i+1}' for i in range(len(detail_coeffs))], 
                                        y=correlation_detail, name='Pearson CC'))
         
-        # Dynamic axis titles
         if wavelet_option in ['Approximate Coefficients', 'Detailed Coefficients']:
             x_title = "Index"
             y_title = "Coefficient Value (V)"
@@ -193,36 +197,30 @@ with container:
         )
         st.plotly_chart(fig_wavelet, use_container_width=True, key='wavelet_plot')
 
-        # FFT Plot
         st.subheader("FFT of Signals")
         fft_option = st.selectbox("Select FFT Option", 
                                 ['FFT of Raw Signal', 'FFT of Denoised Signal', 
                                  'FFT of Approx Coefficients', 'FFT of Detail Coefficients'])
         
-        # Modified frequency ranges
         fft_raw = np.abs(np.fft.fft(Signal))[:len(Signal) // 2]
-        fft_freqs = np.linspace(100, 20000 / 2, len(fft_raw))  # Changed from 0 to 100
-        
+        fft_freqs = np.linspace(100, 20000 / 2, len(fft_raw))
         fft_denoised = np.abs(np.fft.fft(denoised_signal))[:len(Signal) // 2]
         
         fig_fft = go.Figure()
         if fft_option == 'FFT of Raw Signal':
             fig_fft.add_trace(go.Scatter(x=fft_freqs, y=fft_raw, mode='lines', name='FFT of Raw Signal'))
-            
         elif fft_option == 'FFT of Denoised Signal':
             fig_fft.add_trace(go.Scatter(x=fft_freqs, y=fft_denoised, mode='lines', name='FFT of Denoised Signal'))
-            
         elif fft_option == 'FFT of Approx Coefficients':
             fft_approx_coeffs = np.abs(np.fft.fft(coeffs[0]))[:len(coeffs[0]) // 2]
-            fft_freqs_approx = np.linspace(100, 20000 / 2, len(fft_approx_coeffs))  # Changed from 0 to 100
+            fft_freqs_approx = np.linspace(100, 20000 / 2, len(fft_approx_coeffs))
             fig_fft.add_trace(go.Scatter(x=fft_freqs_approx, y=fft_approx_coeffs, 
                                       mode='lines', name='FFT of Approx Coefficients'))
-            
         elif fft_option == 'FFT of Detail Coefficients':
             detail_coeffs = coeffs[1:]
             for i, coeff in enumerate(detail_coeffs):
                 fft_detail_coeffs = np.abs(np.fft.fft(coeff))[:len(coeff) // 2]
-                fft_freqs_detail = np.linspace(100, 20000 / 2, len(fft_detail_coeffs))  # Changed from 0 to 100
+                fft_freqs_detail = np.linspace(100, 20000 / 2, len(fft_detail_coeffs))
                 fig_fft.add_trace(go.Scatter(x=fft_freqs_detail, y=fft_detail_coeffs, 
                                           mode='lines', name=f'FFT of Detail Coefficients {i+1}'))
         
@@ -240,7 +238,6 @@ with container:
         )
         st.plotly_chart(fig_fft, use_container_width=True, key='fft_plot')
 
-        # Time-Frequency Spectrum Plot
         st.subheader("Time-Frequency Spectrum")
         spectrum_option = st.selectbox("Select Time-Frequency Spectrum Option", ['Raw Signal', 'Denoised Signal'])
         
@@ -264,41 +261,33 @@ with container:
         )
         st.plotly_chart(fig_spectrum, use_container_width=True, key='spectrum_plot')
 
-        # Statistical Parameters Download
-        st.markdown(f"<h3 style='text-align: center;'>Download Statistical Parameters</h3>", unsafe_allow_html=True)
+        st.markdown(f"<h3 style='text-align: center;'>Download Consolidated Parameters</h3>", unsafe_allow_html=True)
         
-        col1, col2, col3 = st.columns([1, 1, 1])
-        with col1:
-            noise = np.zeros_like(Signal)
-            stats = calculate_statistical_data(Signal, noise)
-            df_stats = pd.DataFrame(stats.items(), columns=["Parameter", "Value"])
-            
-            @st.cache_data
-            def convert_df(df):
-                return df.to_csv(index=False).encode('utf-8')
-            
-            csv = convert_df(df_stats)
-            st.download_button(
-                "Download Raw Signal Stats",
-                data=csv,
-                file_name="raw_signal_stats.csv",
-                mime='text/csv',
-                key='raw_signal_stats',
-                use_container_width=True,
-                type='primary'
-            )
+        @st.cache_data
+        def convert_df(df):
+            return df.to_csv(index=True).encode('utf-8')
+        
+        csv_all = convert_df(st.session_state.all_stats)
+        st.download_button(
+            "Download All Files Stats",
+            data=csv_all,
+            file_name="all_files_stats.csv",
+            mime='text/csv',
+            key='download_all_stats',
+            use_container_width=True,
+            type='primary'
+        )
 
-        with col3:
-            noise = Signal - denoised_signal
-            stats = calculate_statistical_data(denoised_signal, noise)
-            df_stats_denoised = pd.DataFrame(stats.items(), columns=["Parameter", "Value"])
-            csv_denoised = convert_df(df_stats_denoised)
-            st.download_button(
-                "Download Denoised Signal Stats",
-                data=csv_denoised,
-                file_name="denoised_signal_stats.csv",
-                mime='text/csv',
-                key='denoised_signal_stats',
-                use_container_width=True,
-                type='primary'
-            )
+    with st.expander("File Management", expanded=False):
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("Clear All Files"):
+                # Clear all uploaded files and reset key
+                st.session_state.uploaded_files.clear()
+                st.session_state.all_stats = pd.DataFrame()
+                st.session_state.file_key += 1  # Force uploader reset
+                st.rerun()
+        
+        with col2:
+            st.write(f"Loaded Files: {len(st.session_state.uploaded_files)}")
+            st.write(f"Stored Records: {len(st.session_state.all_stats)}")
